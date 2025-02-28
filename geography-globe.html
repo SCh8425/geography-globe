@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interactive Globe for Geography Game</title>
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; }
+    #globeContainer { width: 100%; height: 100%; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/globe.gl/2.28.4/globe.gl.min.js"></script>
+</head>
+<body>
+  <div id="globeContainer"></div>
+  <script>
+    // Initialize the globe
+    const globe = Globe()
+      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+      .width(window.innerWidth)
+      .height(window.innerHeight)
+      (document.getElementById('globeContainer'));
+    
+    // Make the globe interactive
+    globe.controls().autoRotate = true;
+    globe.controls().autoRotateSpeed = 0.5;
+    
+    // Handle window resizing
+    window.addEventListener('resize', () => {
+      globe.width(window.innerWidth)
+           .height(window.innerHeight);
+    });
+    
+    // Function to communicate with the app
+    window.addEventListener('message', function(event) {
+      const data = JSON.parse(event.data);
+      if (data.type === 'selectCountry') {
+        // Handle country selection
+        highlightCountry(data.countryCode);
+      }
+    });
+    
+    // Function to highlight a country (simplified version)
+    function highlightCountry(countryCode) {
+      // For demo purposes - change globe rotation to focus on regions
+      if (countryCode === 'NA') { // North America
+        globe.pointOfView({ lat: 40, lng: -100, altitude: 2 });
+      } else if (countryCode === 'EU') { // Europe
+        globe.pointOfView({ lat: 50, lng: 10, altitude: 2 });
+      } else if (countryCode === 'AS') { // Asia
+        globe.pointOfView({ lat: 30, lng: 100, altitude: 2 });
+      }
+    }
+    
+    // Function to send message back to the app
+    function sendToApp(data) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(data));
+      }
+    }
+    
+    // Add touch event to detect globe clicks
+    globe.onGlobeClick((coords) => {
+      sendToApp({
+        type: 'locationSelected',
+        coordinates: coords
+      });
+    });
+  </script>
+</body>
+</html>
